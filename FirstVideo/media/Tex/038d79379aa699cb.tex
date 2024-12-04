@@ -1,0 +1,21 @@
+\documentclass[preview]{standalone}
+\usepackage{TikZ}
+\begin{document}
+\begin{center}
+\begin{tikzpicture}
+                \node at (0, 0) (A) {};
+                \node at (60:2cm) (B) {};
+                \node at (120:2cm) (C) {};
+                \node at (180:2cm) (D) {};
+                \node at (240:2cm) (E) {};
+                \node at (300:2cm) (F) {};
+                \draw (A) -- (B) -- (C) -- (D) -- (E) -- (F) -- (A);
+                \draw (A) -- ++(60:1cm);
+                \draw (B) -- ++(180:1cm);
+                \draw (C) -- ++(240:1cm);
+                \draw (D) -- ++(120:1cm);
+                \draw (E) -- ++(0:1cm);
+                \draw (F) -- ++(300:1cm);
+            \end{tikzpicture}
+\end{center}
+\end{document}
