@@ -1,6 +1,10 @@
 import numpy as np
 from manim import *
 
+'''
+    English：You are free to use my code, but please do not delete my copyright text.
+    中文：您可以随意的使用我的代码，但是请使用的同时不要将我的版权说明文本删除掉。
+'''
 
 def CreateBall(num: int) -> VGroup:
     """
