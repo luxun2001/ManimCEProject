@@ -1,0 +1,12 @@
+# This file is used internally by FFMPEG.
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/2902699114_2483402079_223132457.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/3931933789_345352296_2070350411.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/3931933789_2320110221_3504489395.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/3931933789_345352296_1996579025.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/3931933789_3818071172_33357847.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/3931933789_345352296_3721179828.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/3931933789_444584762_1285823018.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/3931933789_190800790_634259233.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/3931933789_75379957_1450855918.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/3931933789_1216582295_2626664035.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/CrossEntropyExplanation/3931933789_190800790_1066683003.mp4'

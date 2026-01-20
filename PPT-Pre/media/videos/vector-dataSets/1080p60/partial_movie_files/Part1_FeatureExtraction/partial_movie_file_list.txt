@@ -1,0 +1,11 @@
+# This file is used internally by FFMPEG.
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/vector-dataSets/1080p60/partial_movie_files/Part1_FeatureExtraction/3529212410_369219630_223132457.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/vector-dataSets/1080p60/partial_movie_files/Part1_FeatureExtraction/3040924799_420145616_2895155495.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/vector-dataSets/1080p60/partial_movie_files/Part1_FeatureExtraction/3040924799_3890345977_1298787915.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/vector-dataSets/1080p60/partial_movie_files/Part1_FeatureExtraction/3040924799_3601875234_3763364973.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/vector-dataSets/1080p60/partial_movie_files/Part1_FeatureExtraction/3040924799_3053721565_1784524931.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/vector-dataSets/1080p60/partial_movie_files/Part1_FeatureExtraction/3040924799_3890345977_401405514.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/vector-dataSets/1080p60/partial_movie_files/Part1_FeatureExtraction/3040924799_1008740531_3290867119.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/vector-dataSets/1080p60/partial_movie_files/Part1_FeatureExtraction/3040924799_1996131208_4162475998.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/vector-dataSets/1080p60/partial_movie_files/Part1_FeatureExtraction/3040924799_1908099092_4101938806.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/vector-dataSets/1080p60/partial_movie_files/Part1_FeatureExtraction/3040924799_1141282389_3340106863.mp4'

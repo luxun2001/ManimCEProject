@@ -1,0 +1,11 @@
+# This file is used internally by FFMPEG.
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/VectorExamples/2902699114_1502543146_223132457.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/VectorExamples/3931933789_2526496290_223964863.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/VectorExamples/3931933789_1993348372_1983286591.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/VectorExamples/3931933789_345352296_4093720767.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/VectorExamples/3931933789_2893079681_934830498.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/VectorExamples/3931933789_345352296_1576274837.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/VectorExamples/3931933789_576334694_3853020863.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/VectorExamples/3931933789_190800790_2574261218.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/VectorExamples/3931933789_1397764022_3860310308.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/VectorDatabases/1080p60/partial_movie_files/VectorExamples/3931933789_3073779459_4081783373.mp4'

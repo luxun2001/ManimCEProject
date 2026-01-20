@@ -1,0 +1,10 @@
+# This file is used internally by FFMPEG.
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/embedding/480p15/partial_movie_files/EmbeddingScene/1185818338_505502945_223132457.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/embedding/480p15/partial_movie_files/EmbeddingScene/624642324_1289881478_3217443143.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/embedding/480p15/partial_movie_files/EmbeddingScene/624642324_3890345977_3759076431.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/embedding/480p15/partial_movie_files/EmbeddingScene/624642324_1445293327_2563241102.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/embedding/480p15/partial_movie_files/EmbeddingScene/624642324_277489678_2646729455.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/embedding/480p15/partial_movie_files/EmbeddingScene/624642324_1956215412_2646729455.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/embedding/480p15/partial_movie_files/EmbeddingScene/624642324_1747769823_1105581344.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/embedding/480p15/partial_movie_files/EmbeddingScene/624642324_1826210473_4220220063.mp4'
+file 'file:D:/GitHub/ManimCEProject/PPT-Pre/media/videos/embedding/480p15/partial_movie_files/EmbeddingScene/624642324_1141282389_2285980519.mp4'
