@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPU Rename 寄存器重命名 — 流水线时序精确版</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  overflow: hidden;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Microsoft YaHei', monospace;
+}
+#app {
+  width: 100vw;
+  height: 100vh;
+  background: #0d1117;
+  color: #c9d1d9;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  padding: 14px 24px;
+  border-bottom: 1px solid #30363d;
+  background: #161b22;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot-red { background: #ff5f56; }
+.dot-yellow { background: #ffbd2e; }
+.dot-green { background: #27ca40; }
+.header-title { margin-left: 8px; font-size: 14px; color: #8b949e; }
+.header-right { font-size: 12px; color: #58a6ff; }
+
+.main { flex: 1; display: flex; overflow: hidden; }
+
+.sidebar {
+  width: 200px;
+  border-right: 1px solid #30363d;
+  background: #0d1117;
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.nav-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+  color: #8b949e;
+  transition: all 0.2s;
+}
+.nav-item:hover { background: #161b22; }
+.nav-item.active {
+  border-left-color: #58a6ff;
+  background: #161b22;
+  color: #58a6ff;
+}
+.step-box {
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: 1px solid #30363d;
+}
+.step-label { font-size: 11px; color: #8b949e; margin-bottom: 8px; }
+.step-num { font-size: 18px; font-weight: bold; color: #f0883e; }
+
+.content { flex: 1; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+
+.concept-bar {
+  padding: 14px 24px;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+}
+.concept-title { font-size: 15px; font-weight: bold; color: #f0883e; margin-bottom: 6px; }
+.concept-desc { font-size: 13px; color: #8b949e; line-height: 1.6; }
+
+.workspace {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 左侧面板 */
+.left-panel {
+  width: 320px;
+  border-right: 1px solid #30363d;
+  background: #0d1117;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+.panel-label {
+  font-size: 12px;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.code-block {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.code-line {
+  font-size: 14px;
+  color: #c9d1d9;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  position: relative;
+}
+.code-line.highlight {
+  background: #da363308;
+  border: 1px solid #da3633;
+}
+.code-line.fixed {
+  background: #3fb95008;
+  border: 1px solid #3fb950;
+}
+.hl-dest { background: #da363333; color: #ff7b72; padding: 1px 5px; border-radius: 3px; font-weight: bold; }
+.hl-src { background: #58a6ff33; color: #58a6ff; padding: 1px 5px; border-radius: 3px; font-weight: bold; }
+.hl-new { background: #3fb95033; color: #3fb950; padding: 1px 5px; border-radius: 3px; font-weight: bold; }
+
+.rename-box {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px dashed #30363d;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.rename-box.show { opacity: 1; }
+.rename-label { font-size: 12px; color: #3fb950; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+/* 右侧时序图 */
+.timeline-area {
+  flex: 1;
+  position: relative;
+  background: #0d1117;
+  overflow: auto;
+  padding: 30px 40px;
+}
+.timeline-title {
+  font-size: 13px;
+  color: #8b949e;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* 甘特图 */
+.gantt-wrap {
+  position: relative;
+  min-width: 700px;
+}
+.gantt-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  height: 44px;
+}
+.gantt-label {
+  width: 70px;
+  font-size: 13px;
+  color: #c9d1d9;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+.gantt-track {
+  flex: 1;
+  height: 36px;
+  background: #161b22;
+  border-radius: 6px;
+  position: relative;
+  border: 1px solid #30363d;
+  overflow: visible;
+}
+.gantt-stage {
+  position: absolute;
+  top: 3px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
+  transition: all 0.4s ease;
+}
+.stage-if { background: #58a6ff; }
+.stage-id { background: #a371f7; }
+.stage-ex { background: #f0883e; }
+.stage-mem { background: #3fb950; }
+.stage-wb { background: #ff7b72; }
+
+/* 冲突标记 */
+.conflict-marker {
+  position: absolute;
+  top: -28px;
+  width: 28px;
+  height: 28px;
+  background: #da3633;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #fff;
+  animation: pulse 1s infinite;
+  z-index: 10;
+}
+.conflict-marker::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #da3633;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(218,54,51,0.5); }
+  50% { transform: scale(1.1); box-shadow: 0 0 12px 4px rgba(218,54,51,0.3); }
+}
+
+/* 箭头连线 */
+.arrow-line {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* 周期刻度 */
+.cycle-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  height: 24px;
+  border-bottom: 1px solid #30363d;
+}
+.cycle-label { width: 70px; flex-shrink: 0; }
+.cycle-ticks {
+  flex: 1;
+  display: flex;
+  position: relative;
+}
+.cycle-tick {
+  position: absolute;
+  font-size: 11px;
+  color: #8b949e;
+  transform: translateX(-50%);
+}
+.cycle-tick::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  width: 1px;
+  height: 200px;
+  background: #21262d;
+}
+
+/* 底部提示 */
+.bottom-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 13px;
+  color: #c9d1d9;
+  max-width: 700px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* 控制栏 */
+.controls {
+  padding: 12px 24px;
+  border-top: 1px solid #30363d;
+  background: #161b22;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.ctrl-left { display: flex; gap: 8px; }
+.ctrl-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  border: none;
+  transition: all 0.2s;
+}
+.btn-prev {
+  background: #21262d;
+  border: 1px solid #30363d;
+  color: #8b949e;
+}
+.btn-prev:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-next {
+  background: #238636;
+  border: 1px solid #238636;
+  color: #fff;
+}
+.btn-next:hover { background: #2ea043; }
+.ctrl-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.auto-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #8b949e;
+  cursor: pointer;
+}
+.btn-reset {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #8b949e;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+}
+.btn-reset:hover { border-color: #8b949e; }
+
+/* 真相关特殊样式 */
+.true-dep-box {
+  margin-top: 16px;
+  padding: 14px;
+  background: #da363308;
+  border: 1px solid #da3633;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #ff7b72;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+      <span class="header-title">CPU Pipeline Hazard & Rename — 精确时序版</span>
+    </div>
+    <div class="header-right">流水线冲突发生时机精确标注</div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="nav-item active" data-scene="waw">🔴 WAW 输出相关</div>
+      <div class="nav-item" data-scene="war">🟡 WAR 反相关</div>
+      <div class="nav-item" data-scene="raw">🟢 RAW 真相关</div>
+      <div class="step-box">
+        <div class="step-label">当前步骤</div>
+        <div class="step-num" id="step-indicator">0 / 4</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="concept-bar">
+        <div class="concept-title" id="concept-title">WAW (Write After Write) — 输出相关</div>
+        <div class="concept-desc" id="concept-desc">两条指令都将结果写入同一个目的寄存器。在乱序执行中，后指令可能先到达 WB 阶段，覆盖前指令的结果。冲突发生在 <b>WB 写回阶段</b>。</div>
+      </div>
+
+      <div class="workspace">
+        <div class="left-panel">
+          <div class="panel-label">指令序列</div>
+          <div class="code-block" id="code-block"></div>
+          <div class="rename-box" id="rename-box">
+            <div class="rename-label">✨ Rename 后（冲突消除）</div>
+            <div id="renamed-code"></div>
+          </div>
+          <div id="true-dep-extra"></div>
+        </div>
+
+        <div class="timeline-area">
+          <div class="timeline-title">⏱ 流水线时序图（横轴 = 时钟周期）</div>
+          <div class="gantt-wrap" id="gantt-wrap"></div>
+          <div class="bottom-hint" id="bottom-hint">点击下方「下一步」开始分析流水线相关性</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-left">
+          <button class="ctrl-btn btn-prev" id="btn-prev" disabled>← 上一步</button>
+          <button class="ctrl-btn btn-next" id="btn-next">下一步 →</button>
+        </div>
+        <div class="ctrl-right">
+          <label class="auto-label">
+            <input type="checkbox" id="auto-play"> 自动播放
+          </label>
+          <button class="btn-reset" id="btn-reset">↺ 重置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 每个场景的数据
+const scenes = {
+  waw: {
+    title: 'WAW (Write After Write) — 输出相关 (Output Dependence)',
+    desc: '两条指令都将结果写入同一个目的寄存器。在乱序执行中，后指令可能先到达 WB 阶段，覆盖前指令的结果。<b>冲突真正发生在 WB 写回阶段</b>。这是「假相关」，可通过 Rename 解决。',
+    steps: 4,
+    code: [
+      { text: 'I1:  R1 = R2 + R3', hl: 'R1', type: 'dest' },
+      { text: 'I2:  R1 = R4 × R5', hl: 'R1', type: 'dest' }
+    ],
+    renamed: [
+      { text: 'I1:  R1 = R2 + R3', hl: 'R1', type: 'dest' },
+      { text: 'I2:  R6 = R4 × R5', hl: 'R6', type: 'new' }
+    ],
+    // 流水线时序: [阶段, 起始周期, 持续周期]
+    pipeline: {
+      i1: [['IF',0,1], ['ID',1,1], ['EX',2,1], ['MEM',3,1], ['WB',4,1]],
+      i2: [['IF',1,1], ['ID',2,1], ['EX',3,1], ['MEM',4,1], ['WB',5,1]]
+    },
+    conflict: {
+      step: 2, // 第几步显示冲突
+      stage: 'WB', // 冲突阶段
+      i1Cycle: 4, // I1的WB在第几周期
+      i2Cycle: 5, // I2的WB在第几周期
+      desc: '⚠️ 冲突！I1 和 I2 都要在 WB 阶段写入 R1',
+      desc2: '💥 若乱序执行，I2 的 WB 可能先于 I1，导致 R1 被错误覆盖！',
+      desc3: '✅ Rename：将 I2 的目的寄存器改为 R6，两条指令分别写入不同寄存器，冲突消除！'
+    }
+  },
+  war: {
+    title: 'WAR (Write After Read) — 反相关 (Anti-Dependence)',
+    desc: '后指令的目的寄存器 = 前指令的源寄存器。在乱序执行中，后指令可能提前完成，其 <b>WB 写回阶段</b> 覆盖了前指令 <b>ID 译码阶段</b> 需要读取的值。这也是「假相关」，可通过 Rename 解决。',
+    steps: 4,
+    code: [
+      { text: 'I1:  R1 = R2 × R3', hl: 'R2', type: 'src' },
+      { text: 'I2:  R2 = R4 + R5', hl: 'R2', type: 'dest' }
+    ],
+    renamed: [
+      { text: 'I1:  R1 = R2 × R3', hl: 'R2', type: 'src' },
+      { text: 'I2:  R6 = R4 + R5', hl: 'R6', type: 'new' }
+    ],
+    pipeline: {
+      i1: [['IF',0,1], ['ID',1,1], ['EX',2,1], ['MEM',3,1], ['WB',4,1]],
+      i2: [['IF',1,1], ['ID',2,1], ['EX',3,1], ['MEM',4,1], ['WB',5,1]]
+    },
+    conflict: {
+      step: 2,
+      stage: 'WB→ID',
+      i1Cycle: 1, // I1读R2在ID阶段(周期1)
+      i2Cycle: 5, // I2写R2在WB阶段(周期5)
+      desc: '⚠️ 冲突！I1 在 ID 阶段需要读取 R2，I2 在 WB 阶段要写入 R2',
+      desc2: '💥 若 I2 乱序提前完成，WB 先执行会覆盖 R2，导致 I1 读到错误数据！',
+      desc3: '✅ Rename：将 I2 的目的寄存器改为 R6，I2 不再覆盖 R2，冲突消除！'
+    }
+  },
+  raw: {
+    title: 'RAW (Read After Write) — 真相关 (True Dependence)',
+    desc: '后指令的源寄存器来自前指令的计算结果。后指令的 <b>ID 阶段</b> 必须等待前指令的 <b>WB 阶段</b> 完成后才能读取正确数据。这是「真相关」，<b>Rename 无法解决</b>。',
+    steps: 3,
+    code: [
+      { text: 'I1:  R1 = R2 + R3', hl: 'R1', type: 'dest' },
+      { text: 'I2:  R4 = R1 × R5', hl: 'R1', type: 'src' }
+    ],
+    renamed: null,
+    pipeline: {
+      i1: [['IF',0,1], ['ID',1,1], ['EX',2,1], ['MEM',3,1], ['WB',4,1]],
+      i2: [['IF',1,1], ['ID',2,1], ['EX',3,1], ['MEM',4,1], ['WB',5,1]]
+    },
+    conflict: {
+      step: 2,
+      stage: 'ID→WB',
+      i1Cycle: 4, // I1写R1在WB(周期4)
+      i2Cycle: 2, // I2读R1在ID(周期2)
+      desc: '⚠️ 依赖！I2 在 ID 阶段需要读取 R1，但 I1 要到 WB 阶段(周期4)才写入 R1',
+      desc2: '❌ 这是真相关（True Dependence）！I2 必须使用 I1 的计算结果，无法通过 Rename 消除！',
+      desc3: '💡 解决方案：数据前递(Forwarding) 或 流水线停顿(Stall)，让 I2 等待 I1 的结果。'
+    }
+  }
+};
+
+let currentScene = 'waw';
+let currentStep = 0;
+let autoPlayTimer = null;
+const cycleWidth = 90; // 每个周期的像素宽度
+const stageColors = { IF:'#58a6ff', ID:'#a371f7', EX:'#f0883e', MEM:'#3fb950', WB:'#ff7b72' };
+
+function renderCode() {
+  const s = scenes[currentScene];
+  const block = document.getElementById('code-block');
+  const renameBox = document.getElementById('rename-box');
+  const renamedCode = document.getElementById('renamed-code');
+  const extra = document.getElementById('true-dep-extra');
+
+  block.innerHTML = s.code.map((c, i) => {
+    let html = c.text;
+    if (currentStep >= 1 && c.hl) {
+      const cls = c.type === 'dest' ? 'hl-dest' : 'hl-src';
+      html = c.text.replace(c.hl, `<span class="${cls}">${c.hl}</span>`);
+    }
+    const conflictClass = (currentStep >= 2 && c.type === 'dest' && c.hl === s.conflict.i1Cycle !== undefined ? 'highlight' : '');
+    return `<div class="code-line ${conflictClass}">${html}</div>`;
+  }).join('');
+
+  if (s.renamed && currentStep >= s.steps) {
+    renameBox.classList.add('show');
+    renamedCode.innerHTML = s.renamed.map(c => {
+      const cls = c.type === 'new' ? 'hl-new' : (c.type === 'dest' ? 'hl-dest' : 'hl-src');
+      const html = c.text.replace(c.hl, `<span class="${cls}">${c.hl}</span>`);
+      const fixedClass = c.type === 'new' ? 'fixed' : '';
+      return `<div class="code-line ${fixedClass}">${html}</div>`;
+    }).join('');
+  } else {
+    renameBox.classList.remove('show');
+  }
+
+  if (currentScene === 'raw' && currentStep >= s.steps) {
+    extra.innerHTML = `<div class="true-dep-box">
+      <b>❌ 真相关无法 Rename 的原因：</b><br>
+      I2 的源操作数 <b>R1</b> 必须是 I1 计算后的真实结果。<br>
+      无论你把 R1 重命名成什么，I2 都需要那个「值」，而不是那个「寄存器名字」。<br><br>
+      <b>解决办法：</b>数据前递(Forwarding) — 将 I1 EX 阶段的结果直接传递给 I2 ID 阶段，无需等待 WB。
+    </div>`;
+  } else {
+    extra.innerHTML = '';
+  }
+}
+
+function renderGantt() {
+  const s = scenes[currentScene];
+  const wrap = document.getElementById('gantt-wrap');
+  const maxCycle = 7;
+
+  let html = '';
+
+  // 周期刻度
+  html += `<div class="cycle-row"><div class="cycle-label"></div><div class="cycle-ticks">`;
+  for (let c = 0; c <= maxCycle; c++) {
+    html += `<div class="cycle-tick" style="left:${c * cycleWidth}px">T${c}</div>`;
+  }
+  html += `</div></div>`;
+
+  // I1 行
+  html += `<div class="gantt-row"><div class="gantt-label">I1</div><div class="gantt-track" style="width:${maxCycle * cycleWidth}px">`;
+  s.pipeline.i1.forEach(([stage, start, dur]) => {
+    const visible = currentStep >= 1;
+    const opacity = visible ? 1 : 0;
+    html += `<div class="gantt-stage stage-${stage.toLowerCase()}" style="left:${start * cycleWidth + 4}px;width:${dur * cycleWidth - 8}px;opacity:${opacity}">${stage}</div>`;
+  });
+  // I1 冲突标记
+  if (currentStep >= 2) {
+    if (currentScene === 'waw') {
+      html += `<div class="conflict-marker" style="left:${s.conflict.i1Cycle * cycleWidth + cycleWidth/2 - 14}px">!</div>`;
+    } else if (currentScene === 'war') {
+      html += `<div class="conflict-marker" style="left:${1 * cycleWidth + cycleWidth/2 - 14}px;background:#58a6ff">R</div>`;
+    } else if (currentScene === 'raw') {
+      html += `<div class="conflict-marker" style="left:${4 * cycleWidth + cycleWidth/2 - 14}px;background:#ff7b72">W</div>`;
+    }
+  }
+  html += `</div></div>`;
+
+  // I2 行
+  html += `<div class="gantt-row"><div class="gantt-label">I2</div><div class="gantt-track" style="width:${maxCycle * cycleWidth}px">`;
+  s.pipeline.i2.forEach(([stage, start, dur]) => {
+    const visible = currentStep >= 1;
+    const opacity = visible ? 1 : 0;
+    html += `<div class="gantt-stage stage-${stage.toLowerCase()}" style="left:${start * cycleWidth + 4}px;width:${dur * cycleWidth - 8}px;opacity:${opacity}">${stage}</div>`;
+  });
+  // I2 冲突标记
+  if (currentStep >= 2) {
+    if (currentScene === 'waw') {
+      html += `<div class="conflict-marker" style="left:${5 * cycleWidth + cycleWidth/2 - 14}px">!</div>`;
+    } else if (currentScene === 'war') {
+      html += `<div class="conflict-marker" style="left:${5 * cycleWidth + cycleWidth/2 - 14}px">!</div>`;
+    } else if (currentScene === 'raw') {
+      html += `<div class="conflict-marker" style="left:${2 * cycleWidth + cycleWidth/2 - 14}px;background:#a371f7">R</div>`;
+    }
+  }
+  html += `</div></div>`;
+
+  // 冲突连线说明
+  if (currentStep >= 2) {
+    html += `<div style="margin-top:20px;padding:14px;background:#161b22;border:1px solid #30363d;border-radius:8px;font-size:13px;line-height:1.8;">`;
+    html += `<div style="color:#f0883e;font-weight:bold;margin-bottom:6px;">📍 冲突分析</div>`;
+    html += `<div style="color:#c9d1d9;">${s.conflict.desc}</div>`;
+    html += `</div>`;
+  }
+
+  // 乱序场景演示
+  if (currentStep >= 3 && currentScene !== 'raw') {
+    html += `<div style="margin-top:16px;padding:14px;background:#da363308;border:1px solid #da3633;border-radius:8px;font-size:13px;line-height:1.8;">`;
+    html += `<div style="color:#ff7b72;font-weight:bold;margin-bottom:6px;">💥 乱序执行场景</div>`;
+    html += `<div style="color:#c9d1d9;">${s.conflict.desc2}</div>`;
+    html += `</div>`;
+  }
+  if (currentStep >= 3 && currentScene === 'raw') {
+    html += `<div style="margin-top:16px;padding:14px;background:#da363308;border:1px solid #da3633;border-radius:8px;font-size:13px;line-height:1.8;">`;
+    html += `<div style="color:#ff7b72;font-weight:bold;margin-bottom:6px;">❌ 真相关本质</div>`;
+    html += `<div style="color:#c9d1d9;">${s.conflict.desc2}</div>`;
+    html += `</div>`;
+  }
+
+  // Rename 解决
+  if (currentStep >= 4 && currentScene !== 'raw') {
+    html += `<div style="margin-top:16px;padding:14px;background:#3fb95008;border:1px solid #3fb950;border-radius:8px;font-size:13px;line-height:1.8;">`;
+    html += `<div style="color:#3fb950;font-weight:bold;margin-bottom:6px;">✅ Rename 解决方案</div>`;
+    html += `<div style="color:#c9d1d9;">${s.conflict.desc3}</div>`;
+    html += `</div>`;
+  }
+  if (currentStep >= 3 && currentScene === 'raw') {
+    html += `<div style="margin-top:16px;padding:14px;background:#58a6ff08;border:1px solid #58a6ff;border-radius:8px;font-size:13px;line-height:1.8;">`;
+    html += `<div style="color:#58a6ff;font-weight:bold;margin-bottom:6px;">💡 解决方案</div>`;
+    html += `<div style="color:#c9d1d9;">${s.conflict.desc3}</div>`;
+    html += `</div>`;
+  }
+
+  wrap.innerHTML = html;
+}
+
+function updateUI() {
+  const s = scenes[currentScene];
+  document.getElementById('concept-title').textContent = s.title;
+  document.getElementById('concept-desc').innerHTML = s.desc;
+  document.getElementById('step-indicator').textContent = `${currentStep} / ${s.steps}`;
+
+  const hint = document.getElementById('bottom-hint');
+  if (currentStep === 0) {
+    hint.textContent = '点击下方「下一步」开始分析流水线相关性';
+  } else if (currentStep === 1) {
+    hint.textContent = '👀 观察两条指令在流水线中的执行时序';
+  } else if (currentStep === 2) {
+    hint.textContent = s.conflict.desc;
+  } else if (currentStep === 3) {
+    hint.textContent = currentScene === 'raw' ? s.conflict.desc2 : s.conflict.desc2;
+  } else {
+    hint.textContent = s.conflict.desc3;
+  }
+
+  document.getElementById('btn-prev').disabled = currentStep === 0;
+  document.getElementById('btn-next').textContent = currentStep >= s.steps ? '完成 ✓' : '下一步 →';
+
+  renderCode();
+  renderGantt();
+}
+
+function switchScene(scene) {
+  currentScene = scene;
+  currentStep = 0;
+  if (autoPlayTimer) { clearInterval(autoPlayTimer); autoPlayTimer = null; }
+  document.getElementById('auto-play').checked = false;
+
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.nav-item[data-scene="${scene}"]`).classList.add('active');
+
+  updateUI();
+}
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => switchScene(el.dataset.scene));
+});
+
+document.getElementById('btn-next').addEventListener('click', () => {
+  const s = scenes[currentScene];
+  if (currentStep < s.steps) {
+    currentStep++;
+    updateUI();
+  }
+});
+
+document.getElementById('btn-prev').addEventListener('click', () => {
+  if (currentStep > 0) { currentStep--; updateUI(); }
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  currentStep = 0;
+  if (autoPlayTimer) { clearInterval(autoPlayTimer); autoPlayTimer = null; }
+  document.getElementById('auto-play').checked = false;
+  updateUI();
+});
+
+document.getElementById('auto-play').addEventListener('change', (e) => {
+  if (e.target.checked) {
+    autoPlayTimer = setInterval(() => {
+      const s = scenes[currentScene];
+      if (currentStep < s.steps) { currentStep++; updateUI(); }
+      else { clearInterval(autoPlayTimer); autoPlayTimer = null; e.target.checked = false; }
+    }, 2500);
+  } else {
+    if (autoPlayTimer) { clearInterval(autoPlayTimer); autoPlayTimer = null; }
+  }
+});
+
+updateUI();
+</script>
+</body>
+</html>
